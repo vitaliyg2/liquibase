@@ -2,9 +2,13 @@ package liquibase.command.core;
 
 import liquibase.CatalogAndSchema;
 import liquibase.GlobalConfiguration;
+import liquibase.Scope;
 import liquibase.command.*;
 import liquibase.database.Database;
 import liquibase.database.ObjectQuotingStrategy;
+import liquibase.resource.OpenOptions;
+import liquibase.resource.PathHandlerFactory;
+import liquibase.resource.Resource;
 import liquibase.serializer.SnapshotSerializerFactory;
 import liquibase.snapshot.DatabaseSnapshot;
 import liquibase.snapshot.SnapshotControl;
@@ -23,6 +27,7 @@ public class SnapshotCommandStep extends AbstractCommandStep {
 
     public static final CommandArgumentDefinition<String> SCHEMAS_ARG;
     public static final CommandArgumentDefinition<String> SNAPSHOT_FORMAT_ARG;
+    public static final CommandArgumentDefinition<String> SNAPSHOT_FILE_ARG;
     public static final CommandArgumentDefinition<SnapshotControl> SNAPSHOT_CONTROL_ARG;
 
     static {
@@ -30,6 +35,8 @@ public class SnapshotCommandStep extends AbstractCommandStep {
         SCHEMAS_ARG = builder.argument("schemas", String.class).description("The schemas to snapshot").build();
         SNAPSHOT_FORMAT_ARG = builder.argument("snapshotFormat", String.class)
                 .description("Output format to use (JSON, YAML, or TXT)").build();
+        SNAPSHOT_FILE_ARG = builder.argument("snapshotFile", String.class)
+                .description("File path to where the output will be written").build();
         SNAPSHOT_CONTROL_ARG = builder.argument("snapshotControl", SnapshotControl.class).hidden().build();
     }
 
@@ -104,7 +111,17 @@ public class SnapshotCommandStep extends AbstractCommandStep {
             resultsBuilder.addResult("snapshot", snapshot);
             resultsBuilder.addResult("statusCode", 0);
 
-            OutputStream outputStream = resultsBuilder.getOutputStream();
+            String snapshotFile = commandScope.getArgumentValue(SNAPSHOT_FILE_ARG);
+
+            OutputStream outputStream;
+            if (StringUtil.trimToNull(snapshotFile) == null) {
+                outputStream = resultsBuilder.getOutputStream();
+            } else {
+                final PathHandlerFactory pathHandlerFactory = Scope.getCurrentScope().getSingleton(PathHandlerFactory.class);
+                Resource file = pathHandlerFactory.getResource(snapshotFile);
+                outputStream = file.openOutputStream(new OpenOptions());
+            }
+
             if (outputStream != null) {
                 String result = printSnapshot(commandScope, snapshot);
                 Writer outputWriter = getOutputWriter(outputStream);
