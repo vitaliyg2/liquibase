@@ -441,6 +441,14 @@
 
     <profiles>
         <profile>
+            <id>disable-tests</id>
+            <properties>
+                <skipTests>true</skipTests>
+                <maven.source.skip>true</maven.source.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
+        <profile>
             <id>non-jdk-8</id>
             <activation>
                 <jdk>!1.8</jdk>
