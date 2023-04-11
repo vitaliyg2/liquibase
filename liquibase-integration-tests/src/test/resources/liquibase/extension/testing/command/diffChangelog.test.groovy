@@ -114,8 +114,9 @@ Optional Args:
         ]
     }
 
-    run "Running diffChangelog should add changesets", {
+    run "Running diffChangelog should add changesets with specified author", {
         arguments = [
+                author           : "Test Author",
                 url              : { it.url },
                 username         : { it.username },
                 password         : { it.password },
@@ -168,7 +169,8 @@ Optional Args:
         }
         expectedFileContent = [
                 "target/test-classes/diffChangeLog-test.xml" : [CommandTests.assertContains("<changeSet ", 5),
-                                                                CommandTests.assertContains("<dropTable ", 1)]
+                                                                CommandTests.assertContains("<dropTable ", 1),
+                                                                CommandTests.assertContains("author=\"Test Author\"", 5)]
         ]
     }
 
