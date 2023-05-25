@@ -84,7 +84,8 @@ public class ForeignKeyComparator implements DatabaseObjectComparator {
                         StringUtil.join(thisForeignKey.getPrimaryKeyColumns(), ",", formatter).equalsIgnoreCase(StringUtil.join(otherForeignKey.getPrimaryKeyColumns(), ",", formatter));
             }
 
-            return columnsTheSame &&
+            return StringUtil.equalsIgnoreCaseAndEmpty(thisForeignKey.getName(), otherForeignKey.getForeignKeyTable().getName()) &&
+                    columnsTheSame &&
                     DatabaseObjectComparatorFactory.getInstance().isSameObject(thisForeignKey.getForeignKeyTable(), otherForeignKey.getForeignKeyTable(), chain.getSchemaComparisons(), accordingTo) &&
                     DatabaseObjectComparatorFactory.getInstance().isSameObject(thisForeignKey.getPrimaryKeyTable(), otherForeignKey.getPrimaryKeyTable(), chain.getSchemaComparisons(), accordingTo);
 
