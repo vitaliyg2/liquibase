@@ -114,19 +114,26 @@ public class SnapshotCommandStep extends AbstractCommandStep {
             String snapshotFile = commandScope.getArgumentValue(SNAPSHOT_FILE_ARG);
 
             OutputStream outputStream;
-            if (StringUtil.trimToNull(snapshotFile) == null) {
-                outputStream = resultsBuilder.getOutputStream();
-            } else {
-                final PathHandlerFactory pathHandlerFactory = Scope.getCurrentScope().getSingleton(PathHandlerFactory.class);
-                Resource file = pathHandlerFactory.getResource(snapshotFile);
-                outputStream = file.openOutputStream(new OpenOptions());
-            }
+            OutputStream stream = null;
+            try {
+                if (StringUtil.trimToNull(snapshotFile) == null) {
+                    outputStream = resultsBuilder.getOutputStream();
+                } else {
+                    final PathHandlerFactory pathHandlerFactory = Scope.getCurrentScope().getSingleton(PathHandlerFactory.class);
+                    Resource file = pathHandlerFactory.getResource(snapshotFile);
+                    stream = file.openOutputStream(new OpenOptions());
+                    outputStream = stream;
+                }
 
-            if (outputStream != null) {
-                String result = printSnapshot(commandScope, snapshot);
-                Writer outputWriter = getOutputWriter(outputStream);
-                outputWriter.write(result);
-                outputWriter.flush();
+                if (outputStream != null) {
+                    String result = printSnapshot(commandScope, snapshot);
+                    Writer outputWriter = getOutputWriter(outputStream);
+                    outputWriter.write(result);
+                    outputWriter.flush();
+                }
+            } finally {
+                if (stream != null)
+                    stream.close();
             }
         } finally {
             //
